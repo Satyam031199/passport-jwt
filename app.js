@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const passport = require('passport');
-const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
+const { Strategy: JwtStrategy } = require('passport-jwt');
 const jwt = require('jsonwebtoken');
 
 
@@ -20,9 +20,20 @@ const users = [
   { id: 2, username: 'user2', password: 'password2' },
 ];
 
+const jwtFromRequest = (req) => {
+  let token = null;
+  if (req && req.headers) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      token = authHeader.split(' ')[1]; // Remove 'Bearer ' prefix
+    }
+  }
+  return token;
+};
+
 // JWT strategy configuration
 const opts = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  jwtFromRequest,
   secretOrKey: SECRET_KEY,
 };
 
@@ -55,6 +66,7 @@ app.post('/login', (req, res) => {
 
 // Protected route example
 app.get('/protected', passport.authenticate('jwt', { session: false }), (req, res) => {
+  console.log(req.headers);
   res.json({ message: 'You have accessed a protected route', user: req.user, data: req.body });
 });
 
